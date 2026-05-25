@@ -63,8 +63,8 @@ async function findUserByEmail(supabase: ReturnType<typeof createClient>, email:
     throw listResult.error;
   }
 
-  const users = listResult.data?.users ?? [];
-  return users.find((user: any) => String(user.email).toLowerCase() === email.toLowerCase()) ?? null;
+  const users = (listResult.data?.users ?? []) as any[];
+  return users.find((user) => String(user.email).toLowerCase() === email.toLowerCase()) ?? null;
 }
 
 async function deleteUserIfExists(supabase: ReturnType<typeof createClient>, email: string) {
@@ -109,10 +109,8 @@ async function createOrReplaceUser(
 
   if (role) {
     console.log(`Updating profile role for ${email} -> ${role}`);
-    const { error } = await supabase.from("profiles").upsert(
-      { id: user.id, role, full_name: fullName },
-      { onConflict: "id" }
-    );
+    const profileRow = { id: user.id, role, full_name: fullName } as any;
+    const { error } = await supabase.from("profiles").upsert(profileRow, { onConflict: "id" });
     if (error) {
       throw error;
     }
@@ -125,11 +123,11 @@ async function getOrCreateCategory(
   supabase: ReturnType<typeof createClient>,
   category: { name: string; slug: string; description: string }
 ) {
-  const { data: existing, error: fetchError } = await supabase
+  const { data: existing, error: fetchError } = (await supabase
     .from("categories")
     .select("id")
     .eq("slug", category.slug)
-    .maybeSingle();
+    .maybeSingle()) as any;
 
   if (fetchError) {
     throw fetchError;
@@ -139,11 +137,11 @@ async function getOrCreateCategory(
     return existing.id;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = (await supabase
     .from("categories")
-    .insert(category)
+    .insert(category as any)
     .select("id")
-    .single();
+    .single()) as any;
 
   if (error) {
     throw error;
@@ -165,11 +163,11 @@ async function upsertProduct(
     images: string[];
   }
 ) {
-  const { data: existing, error: fetchError } = await supabase
+  const { data: existing, error: fetchError } = (await supabase
     .from("products")
     .select("id")
     .eq("slug", product.slug)
-    .maybeSingle();
+    .maybeSingle()) as any;
 
   if (fetchError) {
     throw fetchError;
@@ -177,8 +175,7 @@ async function upsertProduct(
 
   let productId = existing?.id;
   if (productId) {
-    const { error } = await supabase
-      .from("products")
+    const { error } = await (supabase.from("products") as any)
       .update({
         category_id: product.categoryId,
         name: product.name,
@@ -193,7 +190,7 @@ async function upsertProduct(
       throw error;
     }
   } else {
-    const { data, error } = await supabase
+    const { data, error } = (await supabase
       .from("products")
       .insert({
         category_id: product.categoryId,
@@ -203,9 +200,9 @@ async function upsertProduct(
         price: product.price,
         stock: product.stock,
         is_active: product.isActive,
-      })
+      } as any)
       .select("id")
-      .single();
+      .single()) as any;
 
     if (error) {
       throw error;
@@ -218,21 +215,21 @@ async function upsertProduct(
     throw new Error(`Could not resolve product id for ${product.name}`);
   }
 
-  const { error: deleteImagesError } = await supabase
+  const { error: deleteImagesError } = (await supabase
     .from("product_images")
     .delete()
-    .eq("product_id", productId);
+    .eq("product_id", productId)) as any;
   if (deleteImagesError) {
     throw deleteImagesError;
   }
 
   for (let index = 0; index < product.images.length; index += 1) {
     const url = product.images[index];
-    const { error } = await supabase.from("product_images").insert({
+    const { error } = (await (supabase.from("product_images") as any).insert({
       product_id: productId,
       image_url: url,
       sort_order: index,
-    });
+    })) as any;
     if (error) {
       throw error;
     }
@@ -252,7 +249,7 @@ async function main() {
       persistSession: false,
       autoRefreshToken: false,
     },
-  });
+  }) as any;
 
   console.log("=== Seed Supabase Pet Shop Data ===");
 

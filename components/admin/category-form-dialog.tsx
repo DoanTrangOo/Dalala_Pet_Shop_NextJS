@@ -7,7 +7,11 @@ import { useRouter } from "next/navigation";
 import { PlusCircle } from "lucide-react";
 
 import { createCategoryAction, updateCategoryAction } from "@/app/(admin)/actions";
-import { categorySchema, type CategoryValues } from "@/app/(admin)/schemas";
+import {
+  categorySchema,
+  type CategoryFormInput,
+  type CategoryFormOutput,
+} from "@/app/(admin)/schemas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,7 +51,7 @@ export function CategoryFormDialog({ category, trigger }: CategoryFormDialogProp
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
 
-  const defaultValues = useMemo<CategoryValues>(
+  const defaultValues = useMemo<CategoryFormInput>(
     () => ({
       name: category?.name ?? "",
       slug: category?.slug ?? "",
@@ -56,7 +60,7 @@ export function CategoryFormDialog({ category, trigger }: CategoryFormDialogProp
     [category]
   );
 
-  const form = useForm<CategoryValues>({
+  const form = useForm<CategoryFormInput, unknown, CategoryFormOutput>({
     resolver: zodResolver(categorySchema),
     defaultValues,
   });
@@ -65,7 +69,7 @@ export function CategoryFormDialog({ category, trigger }: CategoryFormDialogProp
     form.reset(defaultValues);
   }, [defaultValues, form]);
 
-  const onSubmit = (values: CategoryValues) => {
+  const onSubmit = (values: CategoryFormOutput) => {
     setMessage(null);
 
     const formData = new FormData();
