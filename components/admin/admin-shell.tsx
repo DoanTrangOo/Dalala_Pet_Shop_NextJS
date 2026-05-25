@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { BarChart3, Package, Shapes, Users, Menu } from "lucide-react";
+import { BarChart3, Package, Shapes, Users, Menu, Tags } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ type AdminShellProps = {
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
+  { href: "/admin/categories", label: "Categories", icon: Tags },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: Shapes },
   { href: "/admin/users", label: "Users", icon: Users },

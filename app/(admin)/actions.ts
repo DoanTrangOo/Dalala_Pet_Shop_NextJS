@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 import { categorySchema, productSchema } from "./schemas";
 
@@ -18,6 +19,20 @@ function createSlug(value: string) {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
+}
+
+async function ensureProductsBucket() {
+  const adminClient = createAdminClient();
+  if (!adminClient) {
+    return;
+  }
+
+  const { data, error } = await adminClient.storage.getBucket("products");
+  if (data) {
+    return;
+  }
+
+  await adminClient.storage.createBucket("products", { public: true });
 }
 
 async function getAdminGuard() {
@@ -166,6 +181,10 @@ export async function saveProductAction(formData: FormData): Promise<ActionState
       .eq("id", productId);
 
     if (error) return { error: error.message };
+  }
+
+  if (files.length > 0) {
+    await ensureProductsBucket();
   }
 
   for (const file of files) {
