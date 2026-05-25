@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Heart, Search, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
+
+import { SearchDialog } from "./search-dialog";
 
 const navItems = [
   { href: "/", label: "Trang chủ" },
@@ -30,13 +32,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3 text-slate-600">
-          <Link
-            href="/search"
-            aria-label="Tìm kiếm"
-            className="rounded-full border border-emerald-100 p-2 hover:text-emerald-700"
-          >
-            <Search className="h-4 w-4" />
-          </Link>
+          <SearchDialog />
           <Link
             href="/wishlist"
             aria-label="Danh sách yêu thích"

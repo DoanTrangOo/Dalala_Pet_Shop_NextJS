@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { addToCartAction } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 
 type ProductCard = {
@@ -11,11 +12,11 @@ type ProductCard = {
   product_images: { image_url: string; sort_order: number }[] | null;
 };
 
-const categories = [
-  { label: "Chó", slug: "dogs", image: "/legacy/cat1.png" },
-  { label: "Mèo", slug: "cats", image: "/legacy/cat2.png" },
-  { label: "Động vật nhỏ", slug: "other", image: "/legacy/cat3.png" },
-];
+type CategoryCard = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 const steps = [
   {
@@ -63,13 +64,21 @@ export default async function HomePage() {
     .select("id, name, slug, price, product_images(image_url, sort_order)")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
+    .order("sort_order", { ascending: true, foreignTable: "product_images" })
     .limit(6);
 
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, name, slug")
+    .order("name", { ascending: true });
+
   const items = (products ?? []) as ProductCard[];
+  const categoryItems = (categories ?? []) as CategoryCard[];
   const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
   });
+  const categoryImages = ["/legacy/cat1.png", "/legacy/cat2.png", "/legacy/cat3.png"];
 
   return (
     <main className="bg-white">
@@ -113,30 +122,34 @@ export default async function HomePage() {
           </p>
         </div>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
-            <div
-              key={category.slug}
-              className="rounded-3xl border border-emerald-100 bg-white p-6 text-center shadow-sm"
-            >
-              <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-emerald-50">
-                <Image
-                  src={category.image}
-                  alt={category.label}
-                  width={84}
-                  height={84}
-                />
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-emerald-900">
-                {category.label}
-              </h3>
-              <Link
-                href={`/category/${category.slug}`}
-                className="mt-4 inline-flex rounded-full border border-emerald-600 px-5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
-              >
-                Vào mua
-              </Link>
+          {categoryItems.length === 0 ? (
+            <div className="rounded-2xl border border-emerald-100 bg-white p-8 text-center text-sm text-slate-500">
+              Chưa có danh mục nào.
             </div>
-          ))}
+          ) : (
+            categoryItems.map((category, index) => {
+              const image = categoryImages[index % categoryImages.length];
+              return (
+                <div
+                  key={category.id}
+                  className="rounded-3xl border border-emerald-100 bg-white p-6 text-center shadow-sm"
+                >
+                  <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-emerald-50">
+                    <Image src={image} alt={category.name} width={84} height={84} />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-emerald-900">
+                    {category.name}
+                  </h3>
+                  <Link
+                    href={`/shop?category=${category.slug}`}
+                    className="mt-4 inline-flex rounded-full border border-emerald-600 px-5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
+                  >
+                    Xem sản phẩm
+                  </Link>
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
 
@@ -217,38 +230,24 @@ export default async function HomePage() {
                   key={product.id}
                   className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm"
                 >
-                  <div className="text-sm font-semibold text-emerald-700">
-                    {formatter.format(Number(product.price))}
-                  </div>
-                  <Link href={`/product/${product.slug}`} className="mt-4 block">
+                  <Link href={`/product/${product.slug}`} className="block">
                     <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-emerald-50">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={cover} alt={product.name} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="mt-4 text-sm font-semibold text-emerald-700">
+                      {formatter.format(Number(product.price))}
                     </div>
                     <h3 className="mt-4 text-lg font-semibold text-emerald-900">
                       {product.name}
                     </h3>
                   </Link>
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <input
-                      type="number"
-                      min={1}
-                      defaultValue={1}
-                      className="w-16 rounded-full border border-emerald-100 px-3 py-2 text-sm"
-                    />
-                    <button
-                      type="button"
-                      className="rounded-full border border-emerald-600 px-4 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
-                    >
-                      Yêu thích
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
-                    >
-                      Thêm vào giỏ
-                    </button>
-                  </div>
+                  <Link
+                    href="/contact"
+                    className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    Liên hệ shop
+                  </Link>
                 </div>
               );
             })

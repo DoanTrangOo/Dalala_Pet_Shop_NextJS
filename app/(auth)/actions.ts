@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -31,10 +33,14 @@ export async function loginAction(
   });
 
   if (error) {
-    return { error: "Email or password is incorrect." };
+    const message = error.message.toLowerCase();
+    if (message.includes("email not confirmed")) {
+      return { error: "Vui lòng xác thực email trước khi đăng nhập." };
+    }
+    return { error: "Email hoặc mật khẩu không đúng." };
   }
 
-  return { redirectTo: "/" };
+  redirect("/");
 }
 
 export async function registerAction(
@@ -60,6 +66,10 @@ export async function registerAction(
   });
 
   if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("user already registered")) {
+      return { error: "Email đã được đăng ký." };
+    }
     return { error: error.message };
   }
 
