@@ -33,9 +33,18 @@ export default async function CartPage() {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const items = ((cart?.cart_items as CartItem[] | null) ?? []).filter(
-    (item) => item.product
-  );
+  const rawItems = cart?.cart_items as unknown as
+    | (CartItem & { product: CartItem["product"] | CartItem["product"][] })[]
+    | null;
+
+  const items = ((rawItems ?? [])
+    .map((item) => {
+      const product = Array.isArray(item.product)
+        ? item.product[0] ?? null
+        : item.product;
+      return { ...item, product };
+    }) as CartItem[])
+    .filter((item) => item.product);
   const total = items.reduce((sum, item) => {
     const price = Number(item.product?.price ?? 0);
     return sum + price * item.quantity;

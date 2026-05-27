@@ -50,7 +50,18 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   const { data: products } = await productsQuery;
 
-  const items = (products ?? []) as ProductCard[];
+  const rawProducts = products as unknown as
+    | (ProductCard & { category: ProductCard["category"] | ProductCard["category"][] })[]
+    | null;
+
+  const items = ((rawProducts ?? [])
+    .map((product) => {
+      const category = Array.isArray(product.category)
+        ? product.category[0] ?? null
+        : product.category;
+      return { ...product, category };
+    }) as ProductCard[]);
+
   const categoryItems = (categories ?? []) as CategoryCard[];
   const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",

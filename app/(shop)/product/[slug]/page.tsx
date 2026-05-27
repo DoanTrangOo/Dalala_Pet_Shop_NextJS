@@ -37,7 +37,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const detail = product as ProductDetail;
+  const rawProduct = product as unknown as
+    | (ProductDetail & { category: ProductDetail["category"] | ProductDetail["category"][] })
+    | null;
+
+  const detail = {
+    ...rawProduct,
+    category: Array.isArray(rawProduct?.category)
+      ? rawProduct.category[0] ?? null
+      : rawProduct?.category ?? null,
+  } as ProductDetail;
+
   const images = detail.product_images ?? [];
   const cover = images[0]?.image_url ?? "/legacy/product1.png";
   const formatter = new Intl.NumberFormat("vi-VN", {
