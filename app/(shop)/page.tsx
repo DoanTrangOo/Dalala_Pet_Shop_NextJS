@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { addToCartAction } from "./actions";
+import ProductCardActions from "@/components/shop/product-card-actions";
 import { createClient } from "@/lib/supabase/server";
 
 type ProductCard = {
@@ -59,6 +59,8 @@ const steps = [
 
 export default async function HomePage() {
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user ?? null;
   const { data: products } = await supabase
     .from("products")
     .select("id, name, slug, price, product_images(image_url, sort_order)")
@@ -73,6 +75,17 @@ export default async function HomePage() {
     .order("name", { ascending: true });
 
   const items = (products ?? []) as ProductCard[];
+  const productIds = items.map((item) => item.id);
+  let wishlistIds = new Set<string>();
+
+  if (user && productIds.length > 0) {
+    const { data: wishlistRows } = await supabase
+      .from("wishlists")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .in("product_id", productIds);
+    wishlistIds = new Set((wishlistRows ?? []).map((row) => row.product_id as string));
+  }
   const categoryItems = (categories ?? []) as CategoryCard[];
   const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -242,12 +255,10 @@ export default async function HomePage() {
                       {product.name}
                     </h3>
                   </Link>
-                  <Link
-                    href="/contact"
-                    className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
-                  >
-                    Liên hệ shop
-                  </Link>
+                  <ProductCardActions
+                    productId={product.id}
+                    initialInWishlist={wishlistIds.has(product.id)}
+                  />
                 </div>
               );
             })

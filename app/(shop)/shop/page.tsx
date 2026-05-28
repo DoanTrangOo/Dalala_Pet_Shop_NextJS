@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
+import ProductCardActions from "@/components/shop/product-card-actions";
 
 type ShopPageProps = {
   searchParams?: Promise<{
@@ -28,6 +29,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const activeCategorySlug =
     typeof resolvedSearchParams?.category === "string" ? resolvedSearchParams.category : "";
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user ?? null;
   const { data: categories } = await supabase
     .from("categories")
     .select("id, name, slug")
@@ -61,6 +64,18 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         : product.category;
       return { ...product, category };
     }) as ProductCard[]);
+
+  const productIds = items.map((item) => item.id);
+  let wishlistIds = new Set<string>();
+
+  if (user && productIds.length > 0) {
+    const { data: wishlistRows } = await supabase
+      .from("wishlists")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .in("product_id", productIds);
+    wishlistIds = new Set((wishlistRows ?? []).map((row) => row.product_id as string));
+  }
 
   const categoryItems = (categories ?? []) as CategoryCard[];
   const formatter = new Intl.NumberFormat("vi-VN", {
@@ -123,19 +138,17 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
                       {product.name}
                     </h3>
                   </Link>
-                <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="mt-4">
                   <Link
                     href={`/product/${product.slug}`}
                     className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
                   >
                     Xem chi tiết
                   </Link>
-                    <Link
-                      href="/contact"
-                      className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
-                    >
-                      Liên hệ shop
-                    </Link>
+                  <ProductCardActions
+                    productId={product.id}
+                    initialInWishlist={wishlistIds.has(product.id)}
+                  />
                 </div>
               </div>
             );

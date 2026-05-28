@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import ProductCardActions from "@/components/shop/product-card-actions";
 
 type CategoryPageProps = {
   params: Promise<{
@@ -20,6 +21,8 @@ type ProductCard = {
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user ?? null;
   const { data: category } = await supabase
     .from("categories")
     .select("id, name, slug, description")
@@ -39,6 +42,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     .order("sort_order", { ascending: true, foreignTable: "product_images" });
 
   const items = (products ?? []) as ProductCard[];
+  const productIds = items.map((item) => item.id);
+  let wishlistIds = new Set<string>();
+
+  if (user && productIds.length > 0) {
+    const { data: wishlistRows } = await supabase
+      .from("wishlists")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .in("product_id", productIds);
+    wishlistIds = new Set((wishlistRows ?? []).map((row) => row.product_id as string));
+  }
   const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -78,12 +92,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                     {product.name}
                   </h3>
                 </Link>
-                <Link
-                  href="/contact"
-                  className="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
-                >
-                  Liên hệ shop
-                </Link>
+                <ProductCardActions
+                  productId={product.id}
+                  initialInWishlist={wishlistIds.has(product.id)}
+                />
               </div>
             );
           })

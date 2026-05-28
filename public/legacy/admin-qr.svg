@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Admin QR">
+  <rect width="512" height="512" fill="#ffffff" />
+  <rect x="24" y="24" width="464" height="464" rx="24" fill="#f0fdf4" stroke="#16a34a" stroke-width="8" />
+  <rect x="64" y="64" width="112" height="112" fill="#166534" />
+  <rect x="336" y="64" width="112" height="112" fill="#166534" />
+  <rect x="64" y="336" width="112" height="112" fill="#166534" />
+  <rect x="220" y="220" width="24" height="24" fill="#166534" />
+  <rect x="252" y="220" width="24" height="24" fill="#166534" />
+  <rect x="284" y="220" width="24" height="24" fill="#166534" />
+  <rect x="220" y="252" width="24" height="24" fill="#166534" />
+  <rect x="284" y="252" width="24" height="24" fill="#166534" />
+  <rect x="220" y="284" width="24" height="24" fill="#166534" />
+  <rect x="252" y="284" width="24" height="24" fill="#166534" />
+  <rect x="284" y="284" width="24" height="24" fill="#166534" />
+  <text x="256" y="472" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#166534">Admin QR Placeholder</text>
+</svg>

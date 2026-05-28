@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { addToCartAction, addToWishlistAction } from "../../actions";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
@@ -99,12 +100,26 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {detail.stock > 0 ? `Còn lại ${detail.stock} sản phẩm.` : "Tạm hết hàng."}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/contact"
-              className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Liên hệ shop
-            </Link>
+            <form action={addToCartAction}>
+              <input type="hidden" name="productId" value={detail.id} />
+              <button
+                type="submit"
+                className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              >
+                Thêm vào giỏ
+              </button>
+            </form>
+
+            <form action={addToWishlistAction}>
+              <input type="hidden" name="productId" value={detail.id} />
+              <button
+                type="submit"
+                className="rounded-full border border-emerald-600 px-6 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+              >
+                Yêu thích
+              </button>
+            </form>
+
             <Link
               href="/shop"
               className="rounded-full border border-emerald-600 px-6 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"

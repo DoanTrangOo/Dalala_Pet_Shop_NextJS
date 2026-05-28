@@ -115,7 +115,7 @@ export default async function CartPage() {
               href="/checkout"
               className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
             >
-              Thanh toán
+              Đặt mua
             </Link>
           </div>
         </div>

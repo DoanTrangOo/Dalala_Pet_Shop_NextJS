@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import fs from "fs";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";

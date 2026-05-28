@@ -104,8 +104,14 @@ export function AdminShell({ children }: AdminShellProps) {
                 </h1>
               </div>
 
-              <div className="hidden items-center gap-2 sm:flex">
-                <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/"
+                  className="rounded-full border border-emerald-200 px-3 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50"
+                >
+                  Về trang chủ
+                </Link>
+                <div className="hidden rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 sm:block">
                   Secure access
                 </div>
               </div>

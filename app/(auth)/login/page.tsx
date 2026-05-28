@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { loginAction } from "../actions";
+import { useRouter } from "next/navigation";
 import { loginSchema, type LoginValues } from "../schemas";
 import {
   Card,
@@ -29,6 +30,7 @@ import { Button } from "@/components/ui/button";
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const router = useRouter();
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -47,6 +49,10 @@ export default function LoginPage() {
       if (result?.error) {
         setServerError(result.error);
         return;
+      }
+
+      if (result?.redirectTo) {
+        router.push(result.redirectTo);
       }
     });
   };

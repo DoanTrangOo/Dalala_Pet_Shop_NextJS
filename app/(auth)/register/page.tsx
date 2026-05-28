@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { registerAction } from "../actions";
+import { useRouter } from "next/navigation";
 import { registerSchema, type RegisterValues } from "../schemas";
 import {
   Card,
@@ -30,6 +31,7 @@ export default function RegisterPage() {
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
   const [serverSuccess, setServerSuccess] = useState<string | null>(null);
+  const router = useRouter();
 
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -50,6 +52,11 @@ export default function RegisterPage() {
 
       if (result?.error) {
         setServerError(result.error);
+        return;
+      }
+
+      if (result?.redirectTo) {
+        router.push(result.redirectTo);
         return;
       }
 

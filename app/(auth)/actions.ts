@@ -1,7 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
-
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -40,7 +38,8 @@ export async function loginAction(
     return { error: "Email hoặc mật khẩu không đúng." };
   }
 
-  redirect("/");
+  // Return a client-side redirect instruction instead of performing a server redirect.
+  return { redirectTo: "/" };
 }
 
 export async function registerAction(
@@ -80,4 +79,46 @@ export async function registerAction(
   return {
     success: "Account created. Please check your email to confirm.",
   };
+}
+
+export async function logoutAction(): Promise<AuthActionState> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { redirectTo: "/" };
+}
+
+export async function changePasswordAction(
+  formData: FormData
+): Promise<AuthActionState> {
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (!password || password.length < 8) {
+    return { error: "Mật khẩu phải có ít nhất 8 ký tự." };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Mật khẩu xác nhận không khớp." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "Bạn cần đăng nhập để đổi mật khẩu." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Đổi mật khẩu thành công." };
 }

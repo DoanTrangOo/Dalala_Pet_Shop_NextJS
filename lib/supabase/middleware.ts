@@ -5,7 +5,7 @@ import { getSupabaseEnv } from "./env";
 
 export async function updateSession(request: NextRequest) {
   const { url, anonKey } = getSupabaseEnv();
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },

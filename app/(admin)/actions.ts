@@ -27,7 +27,7 @@ async function ensureProductsBucket() {
     return;
   }
 
-  const { data, error } = await adminClient.storage.getBucket("products");
+  const { data } = await adminClient.storage.getBucket("products");
   if (data) {
     return;
   }
@@ -227,4 +227,90 @@ export async function deleteProductAction(formData: FormData): Promise<ActionSta
 
   revalidatePath("/admin/products");
   return { success: "Product deleted." };
+}
+
+export async function updateUserRoleAction(formData: FormData): Promise<void> {
+  const guard = await getAdminGuard();
+  if (guard.error) return;
+
+  const userId = String(formData.get("id") ?? "");
+  const role = String(formData.get("role") ?? "");
+
+  if (!userId) {
+    return;
+  }
+
+  if (!role || (role !== "admin" && role !== "customer")) {
+    return;
+  }
+
+  const { error } = await guard.supabase.from("profiles").update({ role }).eq("id", userId);
+  if (error) {
+    return;
+  }
+
+  revalidatePath("/admin/users");
+}
+
+export async function updateOrderProgressAction(formData: FormData): Promise<void> {
+  const guard = await getAdminGuard();
+  if (guard.error) return;
+
+  const orderId = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  const paymentStatus = String(formData.get("paymentStatus") ?? "");
+
+  if (!orderId) {
+    return;
+  }
+
+  if (!["pending", "paid", "shipped", "completed", "cancelled"].includes(status)) {
+    return;
+  }
+
+  if (!["pending", "awaiting_transfer", "proof_submitted", "paid", "failed"].includes(paymentStatus)) {
+    return;
+  }
+
+  const { error } = await guard.supabase
+    .from("orders")
+    .update({ status, payment_status: paymentStatus })
+    .eq("id", orderId);
+
+  if (error) {
+    return;
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/orders");
+}
+
+export async function reviewPaymentProofAction(formData: FormData): Promise<void> {
+  const guard = await getAdminGuard();
+  if (guard.error) return;
+
+  const orderId = String(formData.get("id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  const reviewNote = String(formData.get("reviewNote") ?? "").trim();
+
+  if (!orderId) {
+    return;
+  }
+
+  if (decision !== "approve" && decision !== "reject") {
+    return;
+  }
+
+  const nextOrderUpdate =
+    decision === "approve"
+      ? { payment_status: "paid", status: "paid", payment_reviewed_at: new Date().toISOString(), payment_review_note: reviewNote || null }
+      : { payment_status: "failed", status: "pending", payment_reviewed_at: new Date().toISOString(), payment_review_note: reviewNote || "Minh chứng không hợp lệ." };
+
+  const { error } = await guard.supabase.from("orders").update(nextOrderUpdate).eq("id", orderId);
+  if (error) {
+    return;
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/orders");
 }
