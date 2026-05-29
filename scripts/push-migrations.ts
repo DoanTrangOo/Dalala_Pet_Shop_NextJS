@@ -72,9 +72,21 @@ async function main() {
     for (const file of migrationFiles) {
       const sql = fs.readFileSync(path.join(migrationsDir, file), "utf-8");
       console.log(`Applying ${file}...`);
-      await client.query(sql);
+      try {
+        await client.query(sql);
+        console.log(`Applied ${file}`);
+      } catch (err) {
+        console.error(`Failed to apply ${file}:`, err instanceof Error ? err.message : err);
+        try {
+          await client.query("ROLLBACK;");
+          console.log("Rolled back aborted transaction.");
+        } catch (rollbackErr) {
+          // ignore rollback errors
+        }
+        console.log(`Skipping ${file} and continuing with next migration.`);
+      }
     }
-    console.log("Migrations applied successfully.");
+    console.log("Migrations processing complete.");
   } finally {
     await client.end();
   }
