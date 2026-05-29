@@ -16,10 +16,10 @@ type AdminShellProps = {
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
-  { href: "/admin/categories", label: "Categories", icon: Tags },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/orders", label: "Orders", icon: Shapes },
-  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/categories", label: "Danh mục", icon: Tags },
+  { href: "/admin/products", label: "Sản phẩm", icon: Package },
+  { href: "/admin/orders", label: "Đơn hàng", icon: Shapes },
+  { href: "/admin/users", label: "Người dùng", icon: Users },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -59,14 +59,14 @@ export function AdminShell({ children }: AdminShellProps) {
         <aside className="hidden w-72 border-r bg-background px-4 py-6 lg:flex lg:flex-col">
           <div className="space-y-2 px-2">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              Admin Panel
+              Quản lý cửa hàng
             </p>
             <h2 className="text-lg font-semibold text-foreground">Dalala Pet Shop</h2>
           </div>
           <Separator className="my-6" />
           <NavLinks />
           <div className="mt-auto rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-            Manage catalog, orders, and users from one place.
+            Quản lý sản phẩm, đơn hàng và người dùng tập trung tại một nơi.
           </div>
         </aside>
 
@@ -83,7 +83,7 @@ export function AdminShell({ children }: AdminShellProps) {
                   <div className="flex h-full flex-col px-4 py-6">
                     <div className="space-y-2 px-2">
                       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                        Admin Panel
+                        Quản lý cửa hàng
                       </p>
                       <h2 className="text-lg font-semibold text-foreground">
                         Dalala Pet Shop
@@ -97,10 +97,10 @@ export function AdminShell({ children }: AdminShellProps) {
 
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Management Console
+                  Quản trị hệ thống
                 </p>
                 <h1 className="truncate text-lg font-semibold text-foreground">
-                  Admin Dashboard
+                  Quản lý cửa hàng
                 </h1>
               </div>
 
@@ -112,7 +112,7 @@ export function AdminShell({ children }: AdminShellProps) {
                   Về trang chủ
                 </Link>
                 <div className="hidden rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 sm:block">
-                  Secure access
+                  Khu vực bảo mật
                 </div>
               </div>
             </div>

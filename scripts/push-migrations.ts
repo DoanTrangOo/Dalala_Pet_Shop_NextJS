@@ -69,18 +69,36 @@ async function main() {
   await client.connect();
 
   try {
+    await client.query(`
+      create table if not exists public.app_schema_migrations (
+        file_name text primary key,
+        applied_at timestamptz not null default now()
+      );
+    `);
+
+    const { rows: appliedRows } = await client.query<{ file_name: string }>(
+      "select file_name from public.app_schema_migrations"
+    );
+    const appliedFiles = new Set(appliedRows.map((row) => row.file_name));
+
     for (const file of migrationFiles) {
+      if (appliedFiles.has(file)) {
+        console.log(`Skipping ${file} (already applied).`);
+        continue;
+      }
+
       const sql = fs.readFileSync(path.join(migrationsDir, file), "utf-8");
       console.log(`Applying ${file}...`);
       try {
         await client.query(sql);
+        await client.query("insert into public.app_schema_migrations (file_name) values ($1)", [file]);
         console.log(`Applied ${file}`);
       } catch (err) {
         console.error(`Failed to apply ${file}:`, err instanceof Error ? err.message : err);
         try {
           await client.query("ROLLBACK;");
           console.log("Rolled back aborted transaction.");
-        } catch (rollbackErr) {
+        } catch {
           // ignore rollback errors
         }
         console.log(`Skipping ${file} and continuing with next migration.`);

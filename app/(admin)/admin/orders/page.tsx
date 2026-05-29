@@ -41,12 +41,36 @@ type OrderRow = {
 export default async function AdminOrdersPage() {
   const supabase = await createClient();
 
-  const { data: orders } = await supabase
+  const { data: ordersData, error: ordersError } = await supabase
     .from("orders")
     .select(
-      "id, user_id, status, payment_method, payment_status, payment_proof_url, payment_review_note, total_amount, shipping_address, created_at, order_items(id, product_name, unit_price, quantity), profile:profiles(full_name)"
+      "id, user_id, status, payment_method, payment_status, payment_proof_url, payment_review_note, total_amount, shipping_address, created_at, order_items(id, product_name, unit_price, quantity)"
     )
     .order("created_at", { ascending: false });
+
+  if (ordersError) {
+    return (
+      <main className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-foreground">Quản lý đơn hàng</h1>
+          <p className="text-sm text-destructive">Không thể tải danh sách đơn hàng: {ordersError.message}</p>
+        </div>
+      </main>
+    );
+  }
+
+  const orders = (ordersData ?? []) as Omit<OrderRow, "profile">[];
+  const userIds = Array.from(new Set(orders.map((order) => order.user_id)));
+
+  let profileMap = new Map<string, { full_name: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
+
+    profileMap = new Map((profiles ?? []).map((profile) => [profile.id as string, { full_name: profile.full_name as string | null }]));
+  }
 
   const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -63,10 +87,8 @@ export default async function AdminOrdersPage() {
       </div>
 
       <div className="space-y-4">
-        {((orders ?? []) as OrderRow[]).map((order) => {
-          const profile = Array.isArray(order.profile)
-            ? order.profile[0] ?? null
-            : order.profile;
+        {orders.map((order) => {
+          const profile = profileMap.get(order.user_id) ?? null;
 
           return (
             <article key={order.id} className="rounded-xl border bg-white p-5">

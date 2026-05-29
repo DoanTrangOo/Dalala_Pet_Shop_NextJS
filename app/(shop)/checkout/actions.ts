@@ -132,6 +132,7 @@ export async function placeOrderAction(
   revalidatePath("/cart");
   revalidatePath("/checkout");
   revalidatePath("/orders");
+  revalidatePath("/admin");
   revalidatePath("/admin/orders");
 
   if (paymentMethod === "bank_transfer") {
